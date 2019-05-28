@@ -3,7 +3,7 @@ import io
 from state import state
 from state import state_machine
 
-alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-'
 
 def make_state_tree(dictionary):
     if not dictionary:
