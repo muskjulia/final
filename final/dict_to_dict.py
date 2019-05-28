@@ -6,5 +6,5 @@ with open('dict.opcorpora.txt', 'r', encoding='utf-8') as f:
         for line in f:
             if '\t' in line and (count // group % nth) == 0:
                 word = line[0:line.find('\t')] # substring from 0 to the '\t' position
-                new_dict.write(word + '\n')
+                new_dict.write(word[::-1] + '\n')
             count += 1
