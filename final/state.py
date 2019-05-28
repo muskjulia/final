@@ -9,7 +9,7 @@ class state:
         self.gotos = {}
         self.final = False
         state.next_id += 1
-    
+
     def to_map(self):
         obj = {'final': self.final}
         m = dict(self.gotos)
@@ -65,12 +65,16 @@ class state_machine:
 
     @staticmethod
     def from_tree(start, alphabet):
+        print("from_tree 1")
         sm = state_machine()
         sm.alphabet = alphabet
         sm.start_states = {start.id}
         sm.final_states = start.get_final_states()
+        print("from_tree 2")
         sm.states = start.get_states()
+        print("from_tree 3")
         sm.transitions = start.get_transitions()
+        print("from_tree 4")
         return sm
 
     def to_map(self):

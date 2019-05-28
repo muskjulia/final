@@ -126,4 +126,5 @@ with io.open('automat.json', 'r', encoding='utf-8') as f:
     s = state.from_json(raw)
     
     sm = minimize(s)
-    print(sm.to_json())
+    with open ('sm-min.json', 'w', encoding='utf-8') as outf:
+        print(sm.to_json(), file=outf)
