@@ -2,7 +2,7 @@ from state import state
 from state import state_machine
 import io
 
-alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+alphabet = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-'
 
 # def rev(sm):
 #     rsm = state_machine()
