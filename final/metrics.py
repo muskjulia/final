@@ -37,7 +37,7 @@ def rcount(sm):
     res = rcount_rec(sm, current_state, {})
     return res
 
-KEYS = ('final', 'incount', 'outcount', 'rcount', 'rcountrel')
+KEYS = ('final', 'incount', 'outcount', 'lcount', 'rcount', 'rcountrel')
 
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
     res.append({
@@ -45,7 +45,8 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
         'final': 1 if sm.final_states.__contains__(current_state) else 0,
         'incount': inc.get(current_state, 0),
         'outcount': outc.get(current_state, 0),
-        'rcount': rc.get(current_state, 0)
+        'rcount': rc.get(current_state, 0),
+        'lcount': len(lc.get(current_state, set()))
     })
     if (word
         and sm.transitions.__contains__(current_state)
@@ -71,10 +72,26 @@ def word_analyzer(sm, word):
             analyzed[2*i + 2]['rcountrel'] = 100500
     return analyzed
 
+def lcount_update(sm, word, res):
+    current_state = next(iter(sm.start_states))
+
+    for i in range(len(word)):
+        if (sm.transitions.__contains__(current_state)
+                and sm.transitions[current_state].__contains__(word[i])):
+            current_state = next(iter(sm.transitions[current_state][word[i]]))
+            res.setdefault(current_state, set()).add(word[:i])
+
+def lcount(sm):
+    res = {}
+    with open("dict.txt", 'r', encoding='utf-8') as words:
+        for word in words:
+            lcount_update(sm, word, res)
+    return res
+
 def str_state(state):
     return "<{state},{final},{incount},{outcount},{rcount},{rcountrel}>".format(**state)
 
-THRESHOLD = { 'incount' : 1, 'final' : 0, 'outcount' : 1, 'rcountrel' : 1.0 }
+THRESHOLD = { 'incount' : 1, 'final' : 0, 'outcount' : 1, 'rcountrel' : 1.0, 'lcount' : 1 }
 
 def str_state_key(state, key):
     if not THRESHOLD.get(key) or state[key] > THRESHOLD[key]:
@@ -97,6 +114,10 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
 
     rc = rcount(sm)
     print(rc, file=trace)
+
+    print(file=trace)
+    lc = lcount(sm)
+    print(lc, file=trace)
 
     targets = {}
     for key in KEYS:
