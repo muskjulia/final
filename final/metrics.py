@@ -1,4 +1,5 @@
 from state import state_machine
+import config
 
 def incount_rec(sm, current_state, res):
     if not sm.transitions.__contains__(current_state):
@@ -121,7 +122,8 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
 
     targets = {}
     for key in KEYS:
-        targets[key] = open("metric-" + key + ".txt", "w", encoding='utf-8')
+        targets[key] = open(config.PREFIX + "metric-" + key + ".txt",
+                            "w", encoding='utf-8')
     
     with open("dict.txt", 'r', encoding='utf-8') as words:
         with open('metrics.json', 'w', encoding='utf-8') as metrics \
