@@ -71,9 +71,6 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
 
 def word_analyzer(sm, word):
     current_state = next(iter(sm.start_states))
-    inc = incount(sm)
-    outc = outcount(sm)
-    rc = rcount(sm)
 
     analyzed = word_analyzer_rec(sm, inc, outc, rc, current_state, word, [])
 
