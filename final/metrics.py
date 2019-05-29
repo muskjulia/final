@@ -1,5 +1,6 @@
 from state import state_machine
 import config
+import time
 
 def incount_rec(sm, current_state, res):
     if not sm.transitions.__contains__(current_state):
@@ -103,56 +104,70 @@ def str_state_key(state, key):
 
 with open('sm-min.json', 'r', encoding='utf-8') as f \
    , open("trace.txt", 'w', encoding='utf-8') as trace:
+    print("loading…")
     sm = f.read()
     sm = state_machine.from_json(sm)
     print(sm.to_json(), file=trace)
 
+    print("incount…")
     inc = incount(sm)
     print(inc, file=trace)
 
+    print("outcount…")
     outc = outcount(sm)
     print(outc, file=trace)
 
+    print("rcount…")
     rc = rcount(sm)
     print(rc, file=trace)
 
+    print("lcount…")
     print(file=trace)
     lc = lcount(sm)
     print(lc, file=trace)
 
+    print("analyzing…")
+    analyzed_words = []
+    with open("dict.txt", 'r', encoding='utf-8') as words:
+        for word in words:
+            if len(analyzed_words) % 10000 == 0:
+                print(time.asctime(), len(analyzed_words))
+            analyzed_word = config.FNREV(word_analyzer(sm, word))
+            analyzed_words.append(analyzed_word)
+    analyzed_words.sort(key = lambda word: ''.join(word[1::2]))
+
+    print("output to files…")
     targets = {}
     for key in KEYS:
         targets[key] = open(config.PREFIX + "metric-" + key + ".txt",
                             "w", encoding='utf-8')
     
-    with open("dict.txt", 'r', encoding='utf-8') as words:
-        with open('metrics.json', 'w', encoding='utf-8') as metrics \
-           , open('metrics.txt', 'w', encoding='utf-8') as metrics_txt:
-            for word in words:
-                analyzed_word = word_analyzer(sm, word)
-                line = ''
+    with open('metrics.json', 'w', encoding='utf-8') as metrics \
+       , open(config.PREFIX + 'metrics.txt', 'w', encoding='utf-8') as metrics_txt:
+        for analyzed_word in analyzed_words:
+            line = ''
+            for p in analyzed_word:
+                if type(p) is dict:
+                    line += str_state(p)
+                else:
+                    line += p
+            print(line, file=metrics_txt)
+
+            for key in KEYS:
+                line = ''.join(analyzed_word[1::2]) + ': '
                 for p in analyzed_word:
                     if type(p) is dict:
-                        line += str_state(p)
+                        line += str_state_key(p, key)
                     else:
                         line += p
-                print(line, file=metrics_txt)
+                print(line, file=targets[key])
 
-                for key in KEYS:
-                    line = ''
-                    for p in analyzed_word:
-                        if type(p) is dict:
-                            line += str_state_key(p, key)
-                        else:
-                            line += p
-                    print(line, file=targets[key])
-
-                analyzed_word = str(analyzed_word) \
-                                .replace('\'', '\"') \
-                                .replace('True', 'true') \
-                                .replace('False', 'false')
-                #print(analyzed_word)
-                metrics.write(analyzed_word + '\n')
+            analyzed_word = str(analyzed_word) \
+                            .replace('\'', '\"') \
+                            .replace('True', 'true') \
+                            .replace('False', 'false')
+            #print(analyzed_word)
+            metrics.write(analyzed_word + '\n')
 
     for key in KEYS:
         targets[key].close()
