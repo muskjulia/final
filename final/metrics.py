@@ -45,6 +45,8 @@ KEYS = ('final',
         'lcount',
         'rcount',
         'rcountrel',
+        'lcountrel',
+        'rlcount'
         )
 
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
@@ -56,6 +58,7 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
         'rcount': rc.get(current_state, 0),
         'lcount': len(lc.get(current_state, set()))
     }
+    info['rlcount'] = info['rcount'] * info['lcount']
     res.append(info)
     if (word
         and sm.transitions.__contains__(current_state)
@@ -81,6 +84,14 @@ def word_analyzer(sm, word):
                 round(analyzed[2*i]['rcount'] / analyzed[2*i+2]['rcount'], 3)
         else:
             analyzed[2*i + 2]['rcountrel'] = 100500
+
+    analyzed[0]['lcountrel'] = 1.0
+    for i in range(len(analyzed) // 2):
+        if analyzed[2*i]['lcount']:
+            analyzed[2*i + 2]['lcountrel'] = \
+                round(analyzed[2*i+2]['lcount'] / analyzed[2*i]['lcount'], 3)
+        else:
+            analyzed[2*i + 2]['lcountrel'] = analyzed[2*i + 2]['lcount']
     return analyzed
 
 def lcount_update(sm, word, res):
@@ -108,6 +119,7 @@ THRESHOLD = { 'incount' : 1,
               'rcount' : 1,
               'rcountrel' : 1.0,
               'lcount' : 1,
+              'lcountrel' : 1.0,
               }
 
 def str_state_key(state, key):
