@@ -39,17 +39,24 @@ def rcount(sm):
     res = rcount_rec(sm, current_state, {})
     return res
 
-KEYS = ('final', 'incount', 'outcount', 'lcount', 'rcount', 'rcountrel')
+KEYS = ('final',
+        'incount',
+        'outcount',
+        'lcount',
+        'rcount',
+        'rcountrel',
+        )
 
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
-    res.append({
+    info = {
         'state': current_state,
         'final': 1 if sm.final_states.__contains__(current_state) else 0,
         'incount': inc.get(current_state, 0),
         'outcount': outc.get(current_state, 0),
         'rcount': rc.get(current_state, 0),
         'lcount': len(lc.get(current_state, set()))
-    })
+    }
+    res.append(info)
     if (word
         and sm.transitions.__contains__(current_state)
         and sm.transitions[current_state].__contains__(word[0])):
@@ -66,10 +73,12 @@ def word_analyzer(sm, word):
     rc = rcount(sm)
 
     analyzed = word_analyzer_rec(sm, inc, outc, rc, current_state, word, [])
+
     analyzed[0]['rcountrel'] = 1.0
     for i in range(len(analyzed) // 2):
         if analyzed[2*i + 2]['rcount']:
-            analyzed[2*i + 2]['rcountrel'] = round(analyzed[2*i]['rcount'] / analyzed[2*i+2]['rcount'], 3)
+            analyzed[2*i + 2]['rcountrel'] = \
+                round(analyzed[2*i]['rcount'] / analyzed[2*i+2]['rcount'], 3)
         else:
             analyzed[2*i + 2]['rcountrel'] = 100500
     return analyzed
@@ -93,7 +102,13 @@ def lcount(sm):
 def str_state(state):
     return "<{state},{final},{incount},{outcount},{rcount},{rcountrel}>".format(**state)
 
-THRESHOLD = { 'incount' : 1, 'final' : 0, 'outcount' : 1, 'rcountrel' : 1.0, 'lcount' : 1 }
+THRESHOLD = { 'incount' : 1,
+              'final' : 0.5,
+              'outcount' : 1,
+              'rcount' : 1,
+              'rcountrel' : 1.0,
+              'lcount' : 1,
+              }
 
 def str_state_key(state, key):
     if not THRESHOLD.get(key) or state[key] > THRESHOLD[key]:
