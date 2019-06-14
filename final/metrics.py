@@ -54,7 +54,33 @@ KEYS = ('final',
         'lrmin',
         )
 
+class Info:
+    def __init__(self):
+        self.state = None
+        self.final = None
+        self.incount = None
+        self.outcount = None
+        self.rcount = None
+        self.lcount = None
+        self.rlcount = None
+        self.rxlcount = None
+        self.absloglrminus = None
+        self.absloglrmul = None
+        self.lrmin = None
+
+    def as_dict(self):
+        return {
+            'state': self.state,
+            'final': self.final,
+            # и так далее
+            }
+
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
+    info = Info()
+    info.state = current_state
+    info.final = 1 if sm.final_states.__contains__(current_state) else 0
+    info.incount = inc.get(current_state, 0)
+
     info = {
         'state': current_state,
         'final': 1 if sm.final_states.__contains__(current_state) else 0,
@@ -88,6 +114,7 @@ def word_analyzer(sm, word):
     analyzed = word_analyzer_rec(sm, inc, outc, rc, current_state, word, [])
 
     analyzed[0]['rcountrel'] = 1.0
+    # analyzed[0].rcountrel = 1.0
     for i in range(len(analyzed) // 2):
         if analyzed[2*i + 2]['rcount']:
             analyzed[2*i + 2]['rcountrel'] = \
