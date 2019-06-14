@@ -117,7 +117,7 @@ def word_analyzer(sm, word):
     analyzed = word_analyzer_rec(sm, inc, outc, rc, current_state, word, [])
 
     analyzed[0]['rcountrel'] = 1.0
-    # analyzed[0].rcountrel = 1.0
+    #analyzed[0].rcountrel = 1.0
     for i in range(len(analyzed) // 2):
         if analyzed[2*i + 2]['rcount']:
             analyzed[2*i + 2]['rcountrel'] = \
@@ -217,6 +217,8 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
             for p in analyzed_word:
                 if type(p) is dict:
                     line += str_state(p)
+                elif type(p) is Info:
+                    line += p.to_json()
                 else:
                     line += p
             print(line, file=metrics_txt)
@@ -226,6 +228,8 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
                 for p in analyzed_word:
                     if type(p) is dict:
                         line += str_state_key(p, key)
+                    elif type(p) is Info:
+                        line += p.to_json()
                     else:
                         line += p
                 print(line, file=targets[key])
