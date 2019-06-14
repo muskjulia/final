@@ -68,27 +68,30 @@ class Info:
         self.absloglrmul = None
         self.lrmin = None
 
-    def as_dict(self):
-        return {
-            'state': self.state,
-            'final': self.final,
-            # и так далее
-            }
-
+    def to_json(self):
+        res = '{'
+            res += '"state":' + str(self.state) + ','
+            res += '"final":' + str(self.final) + ','
+            res += '"incount":' + str(self.incount) + ','
+            res += '"outcount":' + str(self.outcount) + ','
+            res += '"rcount":' + str(self.rcount) + ','
+            res += '"lcount":' + str(self.lcount) + ','
+            res += '"rlcount":'+ str(self.rlcount) + ','
+            res += 'rxlcount":' + str(self.rxlcount) + ','
+            res += '"absloglrminus":' + str(self.absloglrminus) + ','
+            res += '"absloglrmul":' + str(self.absloglrmul) + ','
+            res += '"lrmin":' : str(self.lrmin) + ','
+            res += '}'
+            return res.replace('\", "").replace('True', 'true').replace('False', 'false')
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
     info = Info()
     info.state = current_state
     info.final = 1 if sm.final_states.__contains__(current_state) else 0
     info.incount = inc.get(current_state, 0)
+    info.outcount = utc.get(current_state, 0)
+    info.rcount = rc.get(current_state, 0)
+    info.lcout = len(lc.get(current_state, set()))
 
-    info = {
-        'state': current_state,
-        'final': 1 if sm.final_states.__contains__(current_state) else 0,
-        'incount': inc.get(current_state, 0),
-        'outcount': outc.get(current_state, 0),
-        'rcount': rc.get(current_state, 0),
-        'lcount': len(lc.get(current_state, set()))
-    }
     info['rlcount'] = info['rcount'] * info['lcount']
     info['rxlcount'] = str(info['lcount']) + '*' + str(info['rcount'])
     lcount = info['lcount']
