@@ -63,6 +63,19 @@ class state_machine:
         self.transitions = {}
         self.alphabet = ''
 
+    def run(self, word, current_state):
+        for letter in word:
+            current_state = next(iter(self.transitions[current_state][letter]))
+        return current_state
+
+    def state_chain(self, word):
+        current_state = next(iter(self.start_states))
+        res = []
+        for letter in word:
+            res.append((current_state, letter))
+            current_state = next(iter(self.transitions[current_state][letter]))
+        return res
+
     @staticmethod
     def from_tree(start, alphabet):
         print("from_tree 1")
@@ -102,6 +115,7 @@ class state_machine:
     @staticmethod
     def from_json(s):
         return state_machine.from_map(json.loads(s))
+
 
 
     

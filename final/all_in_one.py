@@ -9,15 +9,15 @@ import io
 ################## dict_to_dic ##################
 
 new_dict = []
-with open('dict.original.txt', 'r', encoding='utf-8') as f:
+with open(config.DICT, 'r', encoding='utf-8') as f:
     count = 0
-    nth = 100
-    group = 40
+    nth = config.NTH
+    group = config.GROUP_SIZE
     for line in f:
         if '\t' in line and (count // group % nth) == 0:
             word = line[0:line.find('\t')] # substring from 0 to the '\t' position
             if not any((d in word) for d in '0123456789'):
-                new_dict.append(config.FNREV(word) + '\n')
+                new_dict.append(config.FNREV(word.strip().upper()))
         count += 1
 
 ################## beautifier ##################
@@ -218,6 +218,7 @@ def rcount_rec(sm, current_state, res):
 def rcount(sm):
     current_state=next(iter(sm.start_states))
     res = rcount_rec(sm, current_state, {})
+    res = dict(map(lambda state: (state, res[state] - 1 if sm.final_states.__contains__(state) else res[state]), res))
     return res
 
 KEYS = ('final',
@@ -283,7 +284,7 @@ def lcount_update(sm, word, res):
 
 def lcount(sm):
     res = {}
-    with open("dict.txt", 'r', encoding='utf-8') as words:
+    with open(config.DICT, 'r', encoding='utf-8') as words:
         for word in words:
             lcount_update(sm, word, res)
     return res
@@ -306,6 +307,15 @@ def str_state_key(state, key):
     else:
         return ""
 
+def partition(sm, rc, word):
+    state_chain = sm.state_chain(word)
+    rc_chain = set(map(lambda state: rc[state[0]], state_chain))
+    rc_state_chain = list(map(lambda state: (state, rc[state[0]]), state_chain))
+    groups = [([y[0] for y in rc_state_chain if y[1] == x], x) for x in rc_chain]
+    groups.sort(key=lambda x: x[1], reverse=True)
+    partition = list(map(lambda x: ''.join(map(lambda y: y[1] ,x[0])), groups))
+    return partition
+
 with open("trace.txt", 'w', encoding='utf-8') as trace:
     print(sm.to_json(), file=trace)
 
@@ -326,9 +336,17 @@ with open("trace.txt", 'w', encoding='utf-8') as trace:
     lc = lcount(sm)
     print(lc, file=trace)
 
+    print("partitioning..")
+    with open('partition.txt', 'w') as f:
+        for word in new_dict:
+             f.write(word)
+             f.write(': ')
+             f.write(str(partition(sm, rc, word)))
+             f.write('\n')
+
     print("analyzing…")
     analyzed_words = []
-    with open("dict.txt", 'r', encoding='utf-8') as words:
+    with open('dict.txt', 'r', encoding='utf-8') as words:
         for word in words:
             if len(analyzed_words) % 10000 == 0:
                 print(time.asctime(), len(analyzed_words))
