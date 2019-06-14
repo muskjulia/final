@@ -9,15 +9,16 @@ import io
 ################## dict_to_dic ##################
 
 new_dict = []
-with open('dict.original.txt', 'r', encoding='utf-8') as f:
+with open('dict.opcorpora.txt', 'r', encoding='utf-8') as f:
     count = 0
-    nth = 100
+    #nth = 100
+    nth = 1
     group = 40
     for line in f:
         if '\t' in line and (count // group % nth) == 0:
             word = line[0:line.find('\t')] # substring from 0 to the '\t' position
             if not any((d in word) for d in '0123456789'):
-                new_dict.append(config.FNREV(word) + '\n')
+                new_dict.append(config.FNREV(word))
         count += 1
 
 ################## beautifier ##################
@@ -26,6 +27,11 @@ words = new_dict
 words = list(set(words))
 words.sort()
 new_dict = words
+
+with open('dict.txt', 'w', encoding='utf-8') as dict_txt:
+    for word in words:
+        dict_txt.write(word + '\n')
+
 
 ################## make_automat ##################
 
@@ -47,8 +53,8 @@ words = new_dict
 
 print("make tree")
 state_tree = make_state_tree(set(words))
-print(words)
-print(state_tree.to_json())
+#print(words)
+#print(state_tree.to_json())
 print("make state machine")
 sm = state_machine.from_tree(state_tree, alphabet)
 
@@ -57,12 +63,15 @@ with io.open('automat.json', 'w', encoding='utf-8') as f:
     state_tree_json = state_tree.to_json()
     #print(state_tree_json)
     f.write(state_tree_json)
+    state_tree_json = None
 
 print("make sm.json")
 with io.open('sm.json', 'w', encoding='utf-8') as f:
     sm_json = sm.to_json()
     #print(sm_json)
     f.write(sm_json)
+    sm_json = None
+    sm = None
 
 ################## minimize ##################
 
@@ -174,12 +183,15 @@ def minimize(start_state):
                 
     return sm
 
+print("minimize")
 s = state_tree
 sm = minimize(s)
-print(s.to_json())
-print(sm.to_json())
+#print(s.to_json())
+#print(sm.to_json())
 with open ('sm-min.json', 'w', encoding='utf-8') as outf:
     print(sm.to_json(), file=outf)
+
+state_tree = None
 
 ################## metrics ##################
 
@@ -362,12 +374,12 @@ with open("trace.txt", 'w', encoding='utf-8') as trace:
                         line += p
                 print(line, file=targets[key])
 
-            analyzed_word = str(analyzed_word) \
-                            .replace('\'', '\"') \
-                            .replace('True', 'true') \
-                            .replace('False', 'false')
-            #print(analyzed_word)
-            metrics.write(analyzed_word + '\n')
+##            analyzed_word = str(analyzed_word) \
+##                            .replace('\'', '\"') \
+##                            .replace('True', 'true') \
+##                            .replace('False', 'false')
+##            #print(analyzed_word)
+##            metrics.write(analyzed_word + '\n')
 
     for key in KEYS:
         targets[key].close()

@@ -1,6 +1,7 @@
 from state import state_machine
 import config
 import time
+from math import *
 
 def incount_rec(sm, current_state, res):
     if not sm.transitions.__contains__(current_state):
@@ -46,7 +47,11 @@ KEYS = ('final',
         'rcount',
         'rcountrel',
         'lcountrel',
-        'rlcount'
+        'rlcount',
+        'rxlcount',
+        'absloglrminus',
+        'absloglrmul',
+        'lrmin',
         )
 
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
@@ -59,6 +64,14 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
         'lcount': len(lc.get(current_state, set()))
     }
     info['rlcount'] = info['rcount'] * info['lcount']
+    info['rxlcount'] = str(info['lcount']) + '*' + str(info['rcount'])
+    lcount = info['lcount']
+    if not lcount:
+        lcount = 1
+    info['absloglrminus'] = round(abs(log(lcount) - log(info['rcount'])),3)
+    info['absloglrmul'] = round(abs(log(lcount) * log(info['rcount'])), 3)
+    info['lrmin'] = min(info['lcount'], info['rcount'])
+
     res.append(info)
     if (word
         and sm.transitions.__contains__(current_state)
@@ -117,6 +130,7 @@ THRESHOLD = { 'incount' : 1,
               'rcountrel' : 1.0,
               'lcount' : 1,
               'lcountrel' : 1.0,
+              'lrmin' : 1,
               }
 
 def str_state_key(state, key):
@@ -135,20 +149,20 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
 
     print("incount…")
     inc = incount(sm)
-    print(inc, file=trace)
+    #print(inc, file=trace)
 
     print("outcount…")
     outc = outcount(sm)
-    print(outc, file=trace)
+    #print(outc, file=trace)
 
     print("rcount…")
     rc = rcount(sm)
-    print(rc, file=trace)
+    #print(rc, file=trace)
 
     print("lcount…")
-    print(file=trace)
+    #print(file=trace)
     lc = lcount(sm)
-    print(lc, file=trace)
+    #print(lc, file=trace)
 
     print("analyzing…")
     analyzed_words = []
