@@ -92,14 +92,14 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
     info.rcount = rc.get(current_state, 0)
     info.lcout = len(lc.get(current_state, set()))
 
-    info['rlcount'] = info['rcount'] * info['lcount']
-    info['rxlcount'] = str(info['lcount']) + '*' + str(info['rcount'])
-    lcount = info['lcount']
+    info.rlcount = info.rcount * info.lcount
+    info.rxlcount = str(info.lcount) + '*' + str(info.rcount)
+    lcount = info.lcount
     if not lcount:
         lcount = 1
-    info['absloglrminus'] = round(abs(log(lcount) - log(info['rcount'])),3)
-    info['absloglrmul'] = round(abs(log(lcount) * log(info['rcount'])), 3)
-    info['lrmin'] = min(info['lcount'], info['rcount'])
+    info.absloglrminus = round(abs(log(lcount) - log(info.rcount)),3)
+    info.absloglrmul = round(abs(log(lcount) * log(info.rcount)), 3)
+    info.lrmin = min(info.lcount, info.rcount)
 
     res.append(info)
     if (word
