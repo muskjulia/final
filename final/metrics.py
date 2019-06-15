@@ -45,13 +45,13 @@ KEYS = ('final',
         'outcount',
         'lcount',
         'rcount',
-        'rcountrel',
-        'lcountrel',
-        'rlcount',
+##        'rcountrel',
+##        'lcountrel',
+##        'rlcount',
         'rxlcount',
-        'absloglrminus',
-        'absloglrmul',
-        'lrmin',
+##        'absloglrminus',
+##        'absloglrmul',
+##        'lrmin',
         )
 
 class Info:
@@ -62,44 +62,66 @@ class Info:
         self.outcount = None
         self.rcount = None
         self.lcount = None
-        self.rlcount = None
+##        self.rlcount = None
         self.rxlcount = None
-        self.absloglrminus = None
-        self.absloglrmul = None
-        self.lrmin = None
+##        self.absloglrminus = None
+##        self.absloglrmul = None
+##        self.lrmin = None
 
     def to_json(self):
         res = '{'
-            res += '"state":' + str(self.state) + ','
-            res += '"final":' + str(self.final) + ','
-            res += '"incount":' + str(self.incount) + ','
-            res += '"outcount":' + str(self.outcount) + ','
-            res += '"rcount":' + str(self.rcount) + ','
-            res += '"lcount":' + str(self.lcount) + ','
-            res += '"rlcount":'+ str(self.rlcount) + ','
-            res += 'rxlcount":' + str(self.rxlcount) + ','
-            res += '"absloglrminus":' + str(self.absloglrminus) + ','
-            res += '"absloglrmul":' + str(self.absloglrmul) + ','
-            res += '"lrmin":' : str(self.lrmin) + ','
-            res += '}'
-            return res.replace('\", "").replace('True', 'true').replace('False', 'false')
-def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
-    info = Info()
-    info.state = current_state
-    info.final = 1 if sm.final_states.__contains__(current_state) else 0
-    info.incount = inc.get(current_state, 0)
-    info.outcount = utc.get(current_state, 0)
-    info.rcount = rc.get(current_state, 0)
-    info.lcout = len(lc.get(current_state, set()))
+        res += '"state":' + str(self.state) + ','
+        res += '"final":' + str(self.final) + ','
+        res += '"incount":' + str(self.incount) + ','
+        res += '"outcount":' + str(self.outcount) + ','
+        res += '"rcount":' + str(self.rcount) + ','
+        res += '"lcount":' + str(self.lcount) + ','
+##        res += '"rlcount":'+ str(self.rlcount) + ','
+        res += 'rxlcount":' + str(self.rxlcount) + ','
+##        res += '"absloglrminus":' + str(self.absloglrminus) + ','
+##        res += '"absloglrmul":' + str(self.absloglrmul) + ','
+##        res += '"lrmin":' + str(self.lrmin) + ','
+        res += '}'
+        return res.replace('\"', "").replace('True', 'true').replace('False', 'false')
 
-    info.rlcount = info.rcount * info.lcount
-    info.rxlcount = str(info.lcount) + '*' + str(info.rcount)
-    lcount = info.lcount
-    if not lcount:
-        lcount = 1
-    info.absloglrminus = round(abs(log(lcount) - log(info.rcount)),3)
-    info.absloglrmul = round(abs(log(lcount) * log(info.rcount)), 3)
-    info.lrmin = min(info.lcount, info.rcount)
+    def str_state_key(self, key):
+        if not THRESHOLD.get(key) or getattr(self, key, THRESHOLD[key]) > THRESHOLD[key]:
+            return " <{0}:{1}> ".format(self.state, getattr(self, key))
+        else:
+            return ""
+
+
+info_cache = {}
+
+def dict_drop(d, key, default):
+    if key in d:
+        res = d[key]
+        del d[key]
+        return res
+    else:
+        return default
+
+def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
+    if current_state not in info_cache:
+        info = Info()
+        info.state = current_state
+        info.final = 1 if sm.final_states.__contains__(current_state) else 0
+        info.incount = dict_drop(inc, current_state, 0)
+        info.outcount = dict_drop(outc, current_state, 0)
+        info.rcount = dict_drop(rc, current_state, 0)
+        info.lcount = len(dict_drop(lc, current_state, set()))
+
+##        info.rlcount = info.rcount * info.lcount
+        info.rxlcount = str(info.lcount) + '*' + str(info.rcount)
+##        lcount = info.lcount
+##        if not lcount:
+##            lcount = 1
+##        info.absloglrminus = round(abs(log(lcount) - log(info.rcount)),3)
+##        info.absloglrmul = round(abs(log(lcount) * log(info.rcount)), 3)
+##        info.lrmin = min(info.lcount, info.rcount)
+        info_cache[current_state] = info
+    else:
+        info = info_cache[current_state]
 
     res.append(info)
     if (word
@@ -114,24 +136,24 @@ def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
 def word_analyzer(sm, word):
     current_state = next(iter(sm.start_states))
 
-    analyzed = word_analyzer_rec(sm, inc, outc, rc, current_state, word, [])
+    analyzed = tuple(word_analyzer_rec(sm, inc, outc, rc, current_state, word, []))
 
-    analyzed[0]['rcountrel'] = 1.0
+##    analyzed[0].rcountrel = 1.0
     #analyzed[0].rcountrel = 1.0
-    for i in range(len(analyzed) // 2):
-        if analyzed[2*i + 2]['rcount']:
-            analyzed[2*i + 2]['rcountrel'] = \
-                round(analyzed[2*i]['rcount'] / analyzed[2*i+2]['rcount'], 3)
-        else:
-            analyzed[2*i + 2]['rcountrel'] = 100500
-
-    analyzed[0]['lcountrel'] = 1.0
-    for i in range(len(analyzed) // 2):
-        if analyzed[2*i]['lcount']:
-            analyzed[2*i + 2]['lcountrel'] = \
-                round(analyzed[2*i+2]['lcount'] / analyzed[2*i]['lcount'], 3)
-        else:
-            analyzed[2*i + 2]['lcountrel'] = analyzed[2*i + 2]['lcount']
+##    for i in range(len(analyzed) // 2):
+##        if analyzed[2*i + 2].rcount:
+##            analyzed[2*i + 2].rcountrel = \
+##                round(analyzed[2*i].rcount / analyzed[2*i+2].rcount, 3)
+##        else:
+##            analyzed[2*i + 2].rcountrel = 100500
+##
+##    analyzed[0].lcountrel = 1.0
+##    for i in range(len(analyzed) // 2):
+##        if analyzed[2*i].lcount:
+##            analyzed[2*i + 2].lcountrel = \
+##                round(analyzed[2*i+2].lcount / analyzed[2*i].lcount, 3)
+##        else:
+##            analyzed[2*i + 2].lcountrel = analyzed[2*i + 2].lcount
     return analyzed
 
 def lcount_update(sm, word, res):
@@ -165,46 +187,49 @@ THRESHOLD = { 'incount' : 1,
 
 def str_state_key(state, key):
     if not THRESHOLD.get(key) or state[key] > THRESHOLD[key]:
-        return " <{0}:{1}> ".format(state['state'], state[key])
+        return " <{0}:{1}> ".format(state.state, state[key])
     else:
         return ""
 
 
 with open('sm-min.json', 'r', encoding='utf-8') as f \
    , open("trace.txt", 'w', encoding='utf-8') as trace:
-    print("loading…")
+    print(time.asctime(), "loading…")
     sm = f.read()
     sm = state_machine.from_json(sm)
     print(sm.to_json(), file=trace)
 
-    print("incount…")
+    print(time.asctime(), "incount…")
     inc = incount(sm)
     #print(inc, file=trace)
 
-    print("outcount…")
+    print(time.asctime(), "outcount…")
     outc = outcount(sm)
     #print(outc, file=trace)
 
-    print("rcount…")
+    print(time.asctime(), "rcount…")
     rc = rcount(sm)
     #print(rc, file=trace)
 
-    print("lcount…")
+    print(time.asctime(), "lcount…")
     #print(file=trace)
     lc = lcount(sm)
     #print(lc, file=trace)
 
-    print("analyzing…")
+    print(time.asctime(), "analyzing…")
     analyzed_words = []
     with open("dict.txt", 'r', encoding='utf-8') as words:
         for word in words:
-            if len(analyzed_words) % 10000 == 0:
+            if len(analyzed_words) % 10001 == 0:
                 print(time.asctime(), len(analyzed_words))
             analyzed_word = config.FNREV(word_analyzer(sm, word))
             analyzed_words.append(analyzed_word)
-    analyzed_words.sort(key = lambda word: ''.join(word[1::2]))
+           
+##    print(time.asctime(), "sorting…")
+##    analyzed_words.sort(key = lambda word: ''.join(word[1::2]))
 
     print("output to files…")
+    del info_cache
     targets = {}
     for key in KEYS:
         targets[key] = open(config.PREFIX + "metric-" + key + ".txt",
@@ -212,7 +237,10 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
     
     with open('metrics.json', 'w', encoding='utf-8') as metrics \
        , open(config.PREFIX + 'metrics.txt', 'w', encoding='utf-8') as metrics_txt:
-        for analyzed_word in analyzed_words:
+        for i, analyzed_word in enumerate(analyzed_words):
+            if i % 10001 == 0:
+                print(time.asctime(), "output", i)
+
             line = ''
             for p in analyzed_word:
                 if type(p) is dict:
@@ -229,7 +257,7 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
                     if type(p) is dict:
                         line += str_state_key(p, key)
                     elif type(p) is Info:
-                        line += p.to_json()
+                        line += p.str_state_key(key)
                     else:
                         line += p
                 print(line, file=targets[key])
@@ -240,6 +268,7 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
                             .replace('False', 'false')
             #print(analyzed_word)
             metrics.write(analyzed_word + '\n')
+            analyzed_words[i] = None
 
     for key in KEYS:
         targets[key].close()
