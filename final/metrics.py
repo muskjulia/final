@@ -84,6 +84,13 @@ class Info:
         res += '}'
         return res.replace('\"', "").replace('True', 'true').replace('False', 'false')
 
+    def str_state_key(state, key):
+        if not THRESHOLD.get(key) or getattr(state, key) > THRESHOLD[key]:
+            return " <{0}:{1}> ".format(state.state, getattr(state, key))
+        else:
+            return ""
+
+
 def word_analyzer_rec(sm, inc, outc, rc, current_state, word, res):
     info = Info()
     info.state = current_state
@@ -195,25 +202,20 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
     lc = lcount(sm)
     #print(lc, file=trace)
 
-    print("analyzing…")
-    analyzed_words = []
-    with open("dict.txt", 'r', encoding='utf-8') as words:
-        for word in words:
-            if len(analyzed_words) % 10000 == 0:
-                print(time.asctime(), len(analyzed_words))
-            analyzed_word = config.FNREV(word_analyzer(sm, word))
-            analyzed_words.append(analyzed_word)
-    analyzed_words.sort(key = lambda word: ''.join(word[1::2]))
-
-    print("output to files…")
+    print("analyzing & output to files…")
     targets = {}
     for key in KEYS:
         targets[key] = open(config.PREFIX + "metric-" + key + ".txt",
                             "w", encoding='utf-8')
     
     with open('metrics.json', 'w', encoding='utf-8') as metrics \
-       , open(config.PREFIX + 'metrics.txt', 'w', encoding='utf-8') as metrics_txt:
-        for analyzed_word in analyzed_words:
+       , open(config.PREFIX + 'metrics.txt', 'w', encoding='utf-8') as metrics_txt \
+       , open("dict.txt", 'r', encoding='utf-8') as words:
+        for i, word in enumerate(words):
+            if i % 10000 == 0:
+                print(time.asctime(), i)
+
+            analyzed_word = config.FNREV(word_analyzer(sm, word))
             line = ''
             for p in analyzed_word:
                 if type(p) is dict:
@@ -230,7 +232,7 @@ with open('sm-min.json', 'r', encoding='utf-8') as f \
                     if type(p) is dict:
                         line += str_state_key(p, key)
                     elif type(p) is Info:
-                        line += p.to_json()
+                        line += p.str_state_key(key)
                     else:
                         line += p
                 print(line, file=targets[key])
