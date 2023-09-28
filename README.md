@@ -1,13 +1,8 @@
-### как запускать --> последовательно. P.S. Словарь не влез
+How to run it --> sequentially.
 
-#### 1) Dict_to_dict --> преобразует наш словарь, который скачали, в набор слов;
-
-#### 2) Beautifier --> приводит все слова к одному виду и удаляет повторяющиеся слова;
-
-#### 3) Make_automat --> создает автомат сразу в двух вариантах, в виде дерева и в виде стейт машины;
-
-#### 4) Minimize --> минимизирует полученный автомат;
-
-#### 5) Metrics --> анализируем данные с помощью автомата. Функции из слов вычленяют инфу;
-
- ***State --> технический файл, который хранит в себе классы, для работы в разных файлах***
+Dict_to_dict.py --> converts our downloaded dictionary into a set of words.
+Beautifier.py --> standardizes all words and removes duplicates.
+Make_automaton.py --> creates an automaton in two formats: as a tree and as a state machine.
+Minimize.py --> minimizes the obtained automaton.
+Metrics.py --> analyzes the data using the automaton. Functions extract information from words.
+State --> a technical file that contains classes for use in different files.
